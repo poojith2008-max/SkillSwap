@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchSessionById } from '../api/sessions';
-import { Calendar, Clock, BookOpen, User, X, CheckCircle2, History } from 'lucide-react';
+import { startConversation } from '../api/conversations';
+import { Calendar, Clock, BookOpen, User, X, CheckCircle2, History, MessageSquare } from 'lucide-react';
 
 export default function SessionDetailModal({ sessionId, onClose }) {
+  const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -74,6 +77,25 @@ export default function SessionDetailModal({ sessionId, onClose }) {
                   </span>
                 </div>
               </div>
+
+              <button
+                onClick={async () => {
+                  try {
+                    // Start chat with the other participant
+                    const targetId = session.proposer?._id;
+                    if (targetId) {
+                      const conv = await startConversation(targetId);
+                      onClose();
+                      navigate(`/messages?conv=${conv._id}`);
+                    }
+                  } catch (e) {
+                    console.error('Failed to open chat:', e);
+                  }
+                }}
+                className="w-full mt-3 py-2 px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
+              >
+                <MessageSquare className="w-3.5 h-3.5" /> Message Session Partner
+              </button>
             </div>
 
             {/* History Timeline */}

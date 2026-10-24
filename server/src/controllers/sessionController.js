@@ -8,6 +8,7 @@ const {
   cancelSession,
   completeSession,
 } = require('../services/sessions');
+const { findOrCreateConversation } = require('../services/chatService');
 
 const createSessionHandler = async (req, res, next) => {
   try {
@@ -100,9 +101,20 @@ const getSessionByIdHandler = async (req, res, next) => {
 const acceptSessionHandler = async (req, res, next) => {
   try {
     const session = await acceptSession(req.params.id, req.user._id);
+
+    // Auto-provision conversation between proposer and partner so they can text immediately
+    let conversationId = null;
+    try {
+      const conv = await findOrCreateConversation(session.proposer._id, session.partner._id);
+      conversationId = conv._id;
+    } catch (chatErr) {
+      // Non-fatal if conversation already exists or warning
+    }
+
     res.status(200).json({
       message: 'Session accepted successfully',
       session,
+      conversationId,
     });
   } catch (error) {
     next(error);

@@ -8,6 +8,7 @@ import {
   cancelSession,
   completeSession,
 } from '../api/sessions';
+import { startConversation } from '../api/conversations';
 import CounterModal from '../components/CounterModal';
 import ReviewModal from '../components/ReviewModal';
 import SessionDetailModal from '../components/SessionDetailModal';
@@ -24,11 +25,12 @@ import {
   ArrowRight,
   ShieldCheck,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function SessionsDashboard() {
   const { user } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('incoming'); // 'incoming' | 'outgoing' | 'upcoming' | 'past'
   const [sessions, setSessions] = useState([]);
@@ -38,6 +40,7 @@ export default function SessionsDashboard() {
   const [counterTargetSession, setCounterTargetSession] = useState(null);
   const [reviewTargetSession, setReviewTargetSession] = useState(null);
   const [detailTargetSessionId, setDetailTargetSessionId] = useState(null);
+  const [acceptedSessionModal, setAcceptedSessionModal] = useState(null);
 
   const loadSessions = useCallback(async () => {
     try {
@@ -88,11 +91,29 @@ export default function SessionsDashboard() {
   };
 
   // Action handlers
-  const handleAccept = async (id) => {
+  const handleStartChat = async (partnerId) => {
+    if (!partnerId) return;
     try {
-      await acceptSession(id);
+      const conv = await startConversation(partnerId);
+      navigate(`/messages?conv=${conv._id}`);
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message || 'Failed to open chat');
+    }
+  };
+
+  const handleAccept = async (session) => {
+    try {
+      const res = await acceptSession(session._id);
       toast.success('Session accepted! It is now scheduled in Upcoming.');
       loadSessions();
+      setActiveTab('upcoming');
+
+      const partner = session.proposer;
+      setAcceptedSessionModal({
+        partnerName: partner?.name || 'Partner',
+        partnerId: partner?._id,
+        conversationId: res?.conversationId,
+      });
     } catch (err) {
       toast.error(err.response?.data?.error?.message || 'Failed to accept session');
     }
@@ -315,11 +336,20 @@ export default function SessionsDashboard() {
                     <Eye className="w-4 h-4" />
                   </button>
 
+                  {/* Message Partner Button */}
+                  <button
+                    onClick={() => handleStartChat(otherParty?._id)}
+                    className="px-3 py-2 rounded-xl font-semibold bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-300 border border-indigo-500/30 text-xs transition-all flex items-center gap-1.5 shadow-sm"
+                    title={`Message ${otherParty?.name}`}
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" /> Message
+                  </button>
+
                   {/* INCOMING PROPOSALS ACTIONS */}
                   {activeTab === 'incoming' && (
                     <>
                       <button
-                        onClick={() => handleAccept(session._id)}
+                        onClick={() => handleAccept(session)}
                         className="px-4 py-2 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white text-xs shadow-md shadow-emerald-600/25 transition-all flex items-center gap-1.5"
                       >
                         <CheckCircle className="w-3.5 h-3.5" /> Accept
@@ -417,6 +447,46 @@ export default function SessionsDashboard() {
           sessionId={detailTargetSessionId}
           onClose={() => setDetailTargetSessionId(null)}
         />
+      )}
+
+      {/* Post-Accept Instant Message Modal */}
+      {acceptedSessionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl p-6 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-100">Session Confirmed! 🎉</h3>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              You have accepted the skill exchange proposal with{' '}
+              <strong className="text-slate-200">{acceptedSessionModal.partnerName}</strong>.
+              You can text them right away to coordinate the meeting link and discuss what you'll learn!
+            </p>
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  const pId = acceptedSessionModal.partnerId;
+                  const cId = acceptedSessionModal.conversationId;
+                  setAcceptedSessionModal(null);
+                  if (cId) {
+                    navigate(`/messages?conv=${cId}`);
+                  } else {
+                    handleStartChat(pId);
+                  }
+                }}
+                className="flex-1 py-2.5 px-4 rounded-xl font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center gap-2"
+              >
+                <MessageSquare className="w-4 h-4" /> Message {acceptedSessionModal.partnerName} Now
+              </button>
+              <button
+                onClick={() => setAcceptedSessionModal(null)}
+                className="py-2.5 px-4 rounded-xl font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors"
+              >
+                Stay on Sessions
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

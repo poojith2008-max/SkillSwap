@@ -20,7 +20,7 @@ export const fetchSessionById = async (id) => {
 
 export const acceptSession = async (id) => {
   const res = await api.patch(`/sessions/${id}/accept`);
-  return res.data.session;
+  return res.data;
 };
 
 export const declineSession = async (id) => {
