@@ -52,7 +52,10 @@ export default function Register() {
         },
       });
     } catch (err) {
-      const msg = err.response?.data?.error?.message || 'Registration failed.';
+      const msg = err.response?.data?.error?.message 
+        || (err.response?.status === 405 
+          ? 'Backend API is not hosted on this URL. Please test on http://localhost:5173 or deploy the backend.' 
+          : 'Registration failed.');
       toast.error(msg);
     } finally {
       setSubmitting(false);

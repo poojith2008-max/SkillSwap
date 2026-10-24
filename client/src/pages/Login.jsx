@@ -28,7 +28,10 @@ export default function Login() {
       toast.success('Welcome back to SkillSwap!');
       navigate(from, { replace: true });
     } catch (err) {
-      const msg = err.response?.data?.error?.message || 'Login failed. Please verify credentials.';
+      const msg = err.response?.data?.error?.message 
+        || (err.response?.status === 405 
+          ? 'Backend API is not hosted on this URL. Please test on http://localhost:5173 or deploy the backend.' 
+          : 'Login failed. Please verify credentials.');
       toast.error(msg);
     } finally {
       setSubmitting(false);
