@@ -17,6 +17,7 @@ import {
   Check,
   Smile,
   Search,
+  ChevronLeft,
 } from 'lucide-react';
 
 export default function Chat() {
@@ -43,29 +44,33 @@ export default function Chat() {
   };
 
   // 1. Fetch conversations list
-  const loadConversations = useCallback(async () => {
-    try {
-      setLoadingConv(true);
-      const data = await fetchConversations();
-      setConversations(data || []);
-
-      // If active conversation not set, set to first
-      const queryConv = searchParams.get('conv');
-      if (queryConv) {
-        setActiveConversationId(queryConv);
-      } else if (data && data.length > 0 && !activeConversationId) {
-        setActiveConversationId(data[0]._id);
-      }
-    } catch (err) {
-      toast.error('Failed to load conversations');
-    } finally {
-      setLoadingConv(false);
-    }
-  }, [searchParams, activeConversationId]);
-
   useEffect(() => {
-    loadConversations();
-  }, [loadConversations]);
+    let isMounted = true;
+    const load = async () => {
+      try {
+        setLoadingConv(true);
+        const data = await fetchConversations();
+        if (!isMounted) return;
+        setConversations(data || []);
+
+        const queryConv = searchParams.get('conv');
+        if (queryConv) {
+          setActiveConversationId(queryConv);
+        } else if (data && data.length > 0) {
+          setActiveConversationId((prev) => prev || data[0]._id);
+        }
+      } catch (err) {
+        toast.error('Failed to load conversations');
+      } finally {
+        if (isMounted) setLoadingConv(false);
+      }
+    };
+
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams]);
 
   // 2. Fetch messages for active conversation
   const loadMessages = useCallback(async (convId) => {
@@ -99,7 +104,10 @@ export default function Chat() {
 
     const handleNewMessage = ({ conversationId, message }) => {
       if (conversationId === activeConversationId) {
-        setMessages((prev) => [...prev, message]);
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === message._id)) return prev;
+          return [...prev, message];
+        });
         setTimeout(() => scrollToBottom(true), 50);
 
         // Mark read
@@ -107,8 +115,13 @@ export default function Chat() {
       }
 
       // Update conversations list snippet & unread count
-      setConversations((prev) =>
-        prev.map((c) => {
+      setConversations((prev) => {
+        const exists = prev.some((c) => c._id === conversationId);
+        if (!exists) {
+          fetchConversations().then((data) => setConversations(data || []));
+          return prev;
+        }
+        return prev.map((c) => {
           if (c._id === conversationId) {
             return {
               ...c,
@@ -125,8 +138,8 @@ export default function Chat() {
             };
           }
           return c;
-        })
-      );
+        });
+      });
     };
 
     const handleTyping = ({ conversationId, userId, isTyping }) => {
@@ -213,7 +226,11 @@ export default function Chat() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-[calc(100vh-5rem)]">
       <div className="bg-slate-900/70 border border-slate-800 rounded-2xl h-full flex overflow-hidden shadow-2xl backdrop-blur-sm">
         {/* Left Sidebar: Conversations List */}
-        <div className="w-full sm:w-80 md:w-96 border-r border-slate-800 flex flex-col bg-slate-950/40">
+        <div
+          className={`${
+            activeConversationId ? 'hidden sm:flex' : 'flex'
+          } w-full sm:w-80 md:w-96 border-r border-slate-800 flex-col bg-slate-950/40`}
+        >
           <div className="p-4 border-b border-slate-800 flex items-center justify-between">
             <h2 className="font-bold text-base text-slate-100 flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-indigo-400" />
@@ -288,13 +305,27 @@ export default function Chat() {
         </div>
 
         {/* Right Main Panel: Active Message Thread */}
-        <div className="hidden sm:flex flex-1 flex-col bg-slate-900/40">
+        <div
+          className={`${
+            activeConversationId ? 'flex' : 'hidden sm:flex'
+          } flex-1 flex-col bg-slate-900/40`}
+        >
           {activeConversation ? (
             <>
               {/* Header */}
               <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/30">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-sm text-white">
+                  <button
+                    onClick={() => {
+                      setActiveConversationId('');
+                      setSearchParams({});
+                    }}
+                    className="sm:hidden p-1.5 -ml-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                    title="Back to conversations"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-sm text-white shrink-0">
                     {activePartner?.name?.charAt(0) || '?'}
                   </div>
                   <div>

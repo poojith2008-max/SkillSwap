@@ -21,7 +21,7 @@ const startServer = async () => {
   try {
     await connectDB();
 
-    // Start auto-expiry cron
+    // Start auto-expiry cron (every 10 minutes)
     startExpiryCron(io);
 
     server.listen(env.PORT, () => {
