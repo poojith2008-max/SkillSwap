@@ -12,6 +12,8 @@ const AppError = require('./utils/AppError');
 // Routes
 const healthRoutes = require('./routes/health');
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
+const skillRoutes = require('./routes/skill');
 
 const app = express();
 
@@ -60,8 +62,8 @@ app.use('/api/health', healthRoutes);
 
 // Auth endpoints
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
-// app.use('/api/skills', skillRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/skills', skillRoutes);
 // app.use('/api/matches', matchRoutes);
 // app.use('/api/sessions', sessionRoutes);
 // app.use('/api/reviews', reviewRoutes);
