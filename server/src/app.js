@@ -18,6 +18,7 @@ const matchRoutes = require('./routes/match');
 const sessionRoutes = require('./routes/session');
 const notificationRoutes = require('./routes/notification');
 const { reviewRouter } = require('./routes/review');
+const conversationRoutes = require('./routes/conversation');
 
 const app = express();
 
@@ -71,7 +72,7 @@ app.use('/api/skills', skillRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/reviews', reviewRouter);
-// app.use('/api/conversations', conversationRoutes);
+app.use('/api/conversations', conversationRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // 404 handler for undefined routes
