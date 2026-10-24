@@ -75,7 +75,26 @@ app.use('/api/reviews', reviewRouter);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-// 404 handler for undefined routes
+// In production, serve client static bundle if built
+const path = require('path');
+const fs = require('fs');
+const clientDist = path.join(__dirname, '../../client/dist');
+if (fs.existsSync(clientDist)) {
+  app.use(express.static(clientDist));
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
+
+// 404 handler for undefined API routes
+app.use('/api/*', (req, res, next) => {
+  next(new AppError(`API endpoint ${req.method} ${req.originalUrl} not found`, 404, 'NOT_FOUND'));
+});
+
+// Generic 404 for non-API routes when client/dist is not present
 app.use('*', (req, res, next) => {
   next(new AppError(`Endpoint ${req.method} ${req.originalUrl} not found`, 404, 'NOT_FOUND'));
 });
