@@ -56,11 +56,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     const data = await registerUser(userData);
-    localStorage.setItem('skillswap_token', data.token);
-    localStorage.setItem('skillswap_user', JSON.stringify(data.user));
-    setToken(data.token);
-    setUser(data.user);
-    return data.user;
+    // Do not automatically set user session or persist token; user must sign in manually
+    return data;
   };
 
   const logout = async () => {

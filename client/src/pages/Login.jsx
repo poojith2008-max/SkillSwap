@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { Layers, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Layers, Mail, Lock, ArrowRight, Sparkles, CheckCircle } from 'lucide-react';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const location = useLocation();
+  const [email, setEmail] = useState(location.state?.registeredEmail || '');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const from = location.state?.from?.pathname || '/matches';
 
@@ -62,6 +62,13 @@ export default function Login() {
               Sign in to manage your skill exchanges and active sessions
             </p>
           </div>
+
+          {location.state?.message && (
+            <div className="mb-6 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs flex items-center gap-2.5 animate-fadeIn">
+              <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{location.state.message}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

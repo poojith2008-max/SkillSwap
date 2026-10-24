@@ -44,8 +44,13 @@ export default function Register() {
     try {
       setSubmitting(true);
       await register({ name, email, password, bio, timezone });
-      toast.success('Account created! Welcome to SkillSwap.');
-      navigate('/profile'); // Direct to profile onboarding
+      toast.success('Account created successfully! Please sign in to continue.');
+      navigate('/login', {
+        state: {
+          registeredEmail: email,
+          message: 'Account created successfully! Please sign in with your password to continue.',
+        },
+      });
     } catch (err) {
       const msg = err.response?.data?.error?.message || 'Registration failed.';
       toast.error(msg);
