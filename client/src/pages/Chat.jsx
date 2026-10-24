@@ -22,7 +22,7 @@ import {
 
 export default function Chat() {
   const { user } = useAuth();
-  const { socket, connected } = useSocket();
+  const { socket, connected, refreshUnreadMessages } = useSocket();
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -85,12 +85,16 @@ export default function Chat() {
       if (socket && connected) {
         socket.emit('join_conversation', { conversationId: convId });
       }
+
+      if (refreshUnreadMessages) {
+        refreshUnreadMessages();
+      }
     } catch (err) {
       toast.error('Failed to load message history');
     } finally {
       setLoadingMessages(false);
     }
-  }, [socket, connected]);
+  }, [socket, connected, refreshUnreadMessages]);
 
   useEffect(() => {
     if (activeConversationId) {

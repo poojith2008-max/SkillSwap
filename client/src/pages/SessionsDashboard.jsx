@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { useToast } from '../context/ToastContext';
 import {
   fetchSessions,
@@ -29,6 +30,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function SessionsDashboard() {
   const { user } = useAuth();
+  const { refreshPendingSessions } = useSocket();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -47,12 +49,15 @@ export default function SessionsDashboard() {
       setLoading(true);
       const allSessions = await fetchSessions();
       setSessions(allSessions || []);
+      if (refreshPendingSessions) {
+        refreshPendingSessions();
+      }
     } catch (err) {
       toast.error('Failed to load sessions');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [refreshPendingSessions]);
 
   useEffect(() => {
     loadSessions();

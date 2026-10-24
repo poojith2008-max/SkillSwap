@@ -7,6 +7,8 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '../api/notifications';
+import { fetchConversations } from '../api/conversations';
+import { fetchSessions } from '../api/sessions';
 
 const SocketContext = createContext(null);
 
@@ -17,6 +19,8 @@ export const SocketProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [pendingSessionsCount, setPendingSessionsCount] = useState(0);
 
   const loadNotifications = useCallback(async () => {
     if (!token) return;
@@ -29,9 +33,35 @@ export const SocketProvider = ({ children }) => {
     }
   }, [token]);
 
+  const loadUnreadMessages = useCallback(async () => {
+    if (!token) return;
+    try {
+      const convs = await fetchConversations();
+      const count = (convs || []).reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+      setUnreadMessagesCount(count);
+    } catch (err) {
+      // silent
+    }
+  }, [token]);
+
+  const loadPendingSessions = useCallback(async () => {
+    if (!token || !user) return;
+    try {
+      const sess = await fetchSessions();
+      const count = (sess || []).filter(
+        (s) => s.status === 'proposed' && s.partner?._id?.toString() === user._id?.toString()
+      ).length;
+      setPendingSessionsCount(count);
+    } catch (err) {
+      // silent
+    }
+  }, [token, user]);
+
   useEffect(() => {
     loadNotifications();
-  }, [loadNotifications]);
+    loadUnreadMessages();
+    loadPendingSessions();
+  }, [loadNotifications, loadUnreadMessages, loadPendingSessions]);
 
   useEffect(() => {
     if (!token || !user) {
@@ -64,10 +94,14 @@ export const SocketProvider = ({ children }) => {
       setNotifications((prev) => [notif, ...prev]);
       setUnreadCount((prev) => prev + 1);
       toast.info(notif.message, notif.title);
+      if (notif.type?.includes('session')) {
+        loadPendingSessions();
+      }
     });
 
     // Real-time chat notification outside active chat
     socketInstance.on('new_message_notification', (data) => {
+      setUnreadMessagesCount((prev) => prev + 1);
       toast.info(`${data.sender.name}: ${data.text.slice(0, 45)}...`, 'New Message');
     });
 
@@ -76,7 +110,7 @@ export const SocketProvider = ({ children }) => {
     return () => {
       socketInstance.disconnect();
     };
-  }, [token, user]);
+  }, [token, user, loadPendingSessions]);
 
   const markRead = async (id) => {
     try {
@@ -107,9 +141,13 @@ export const SocketProvider = ({ children }) => {
         connected,
         notifications,
         unreadCount,
+        unreadMessagesCount,
+        pendingSessionsCount,
         markRead,
         markAllRead,
         refreshNotifications: loadNotifications,
+        refreshUnreadMessages: loadUnreadMessages,
+        refreshPendingSessions: loadPendingSessions,
       }}
     >
       {children}

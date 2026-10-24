@@ -19,7 +19,15 @@ import {
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const { connected, notifications, unreadCount, markRead, markAllRead } = useSocket();
+  const {
+    connected,
+    notifications,
+    unreadCount,
+    unreadMessagesCount,
+    pendingSessionsCount,
+    markRead,
+    markAllRead,
+  } = useSocket();
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -44,8 +52,22 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Matches', path: '/matches', icon: Sparkles },
-    { name: 'Sessions', path: '/sessions', icon: Calendar },
-    { name: 'Messages', path: '/messages', icon: MessageSquare },
+    {
+      name: 'Sessions',
+      path: '/sessions',
+      icon: Calendar,
+      badge: pendingSessionsCount > 0 ? pendingSessionsCount : null,
+      badgeColor: 'bg-amber-500 text-slate-950 shadow-amber-500/30',
+      badgeLabel: 'New Proposals',
+    },
+    {
+      name: 'Messages',
+      path: '/messages',
+      icon: MessageSquare,
+      badge: unreadMessagesCount > 0 ? unreadMessagesCount : null,
+      badgeColor: 'bg-indigo-500 text-white shadow-indigo-500/30',
+      badgeLabel: 'Unread Messages',
+    },
     { name: 'Profile', path: '/profile', icon: User },
   ];
 
@@ -77,14 +99,24 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   to={item.path}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
                     isActive
                       ? 'bg-indigo-600/15 text-indigo-400 border border-indigo-500/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  {item.name}
+                  <div className="relative flex items-center">
+                    <Icon className="w-4 h-4" />
+                    {item.badge && (
+                      <span
+                        className={`absolute -top-2 -right-2.5 px-1.5 py-0.2 min-w-[17px] h-4 rounded-full text-[10px] font-extrabold flex items-center justify-center shadow-lg animate-pulse ${item.badgeColor}`}
+                        title={`${item.badge} ${item.badgeLabel}`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                  <span>{item.name}</span>
                 </Link>
               );
             })}
@@ -248,14 +280,23 @@ export default function Navbar() {
                 key={item.name}
                 to={item.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium ${
+                className={`flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium ${
                   isActive
                     ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30'
                     : 'text-slate-300 hover:bg-slate-900'
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                {item.name}
+                <div className="flex items-center gap-3">
+                  <Icon className="w-5 h-5" />
+                  <span>{item.name}</span>
+                </div>
+                {item.badge && (
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-bold shadow-md animate-pulse ${item.badgeColor}`}
+                  >
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
