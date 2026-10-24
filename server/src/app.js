@@ -14,6 +14,7 @@ const healthRoutes = require('./routes/health');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const skillRoutes = require('./routes/skill');
+const matchRoutes = require('./routes/match');
 
 const app = express();
 
@@ -64,7 +65,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/skills', skillRoutes);
-// app.use('/api/matches', matchRoutes);
+app.use('/api/matches', matchRoutes);
 // app.use('/api/sessions', sessionRoutes);
 // app.use('/api/reviews', reviewRoutes);
 // app.use('/api/conversations', conversationRoutes);
