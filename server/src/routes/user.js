@@ -34,5 +34,6 @@ router.get('/me', authMiddleware, (req, res) => {
 router.put('/me', authMiddleware, validate({ body: updateMeSchema }), updateMe);
 router.put('/me/availability', authMiddleware, validate({ body: availabilitySchema }), updateMyAvailability);
 router.get('/:id', validate({ params: idParamSchema }), getUserById);
+router.get('/:id/reviews', validate({ params: idParamSchema }), require('../controllers/reviewController').getUserReviews);
 
 module.exports = router;
