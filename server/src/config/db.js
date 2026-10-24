@@ -5,13 +5,19 @@ let memoryServer = null;
 
 const connectDB = async () => {
   try {
+    if (mongoose.connection.readyState === 1) {
+      return mongoose.connection;
+    }
+
     let mongoUri = env.MONGODB_URI;
 
     if (mongoUri === 'memory' || env.NODE_ENV === 'test') {
-      const { MongoMemoryServer } = require('mongodb-memory-server');
-      memoryServer = await MongoMemoryServer.create();
+      if (!memoryServer) {
+        const { MongoMemoryServer } = require('mongodb-memory-server');
+        memoryServer = await MongoMemoryServer.create();
+        console.log('⚡ Initialized MongoMemoryServer for development/testing');
+      }
       mongoUri = memoryServer.getUri();
-      console.log('⚡ Initialized MongoMemoryServer for development/testing');
     }
 
     mongoose.set('strictQuery', true);
@@ -27,8 +33,10 @@ const connectDB = async () => {
     // In dev fallback to memory server if local MongoDB is unreachable
     try {
       console.log('⚠️ Attempting fallback to MongoMemoryServer in development...');
-      const { MongoMemoryServer } = require('mongodb-memory-server');
-      memoryServer = await MongoMemoryServer.create();
+      if (!memoryServer) {
+        const { MongoMemoryServer } = require('mongodb-memory-server');
+        memoryServer = await MongoMemoryServer.create();
+      }
       const fallbackUri = memoryServer.getUri();
       await mongoose.connect(fallbackUri);
       console.log('✅ Fallback MongoMemoryServer connected successfully');
@@ -40,10 +48,12 @@ const connectDB = async () => {
   }
 };
 
-const disconnectDB = async () => {
+const disconnectDB = async (forceStop = false) => {
   try {
-    await mongoose.disconnect();
-    if (memoryServer) {
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+    }
+    if (forceStop && memoryServer) {
       await memoryServer.stop();
       memoryServer = null;
     }
