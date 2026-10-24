@@ -1,12 +1,15 @@
 # SkillSwap 🤝
 ### A Community Skill-Exchange Marketplace (MERN)
 
+[![Live Demo](https://img.shields.io/badge/Vercel-Live%20Demo-black?logo=vercel)](https://skill-swap-three-gilt.vercel.app/)
 [![Node.js](https://img.shields.io/badge/Node.js-v24.x-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-v19.x-blue.svg)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-v4.x-38bdf8.svg)](https://tailwindcss.com/)
 [![Socket.io](https://img.shields.io/badge/Socket.io-v4.x-white.svg)](https://socket.io/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-emerald.svg)](https://www.mongodb.com/)
 [![Tests](https://img.shields.io/badge/Tests-64%20Passing-brightgreen.svg)]()
+
+> **Live Deployment:** [https://skill-swap-three-gilt.vercel.app/](https://skill-swap-three-gilt.vercel.app/)
 
 ---
 
@@ -33,6 +36,8 @@ Many people want to learn valuable skills (guitar, Python, conversational Spanis
 - **Dynamic Skill Catalog with Autocomplete:** Autocomplete search over 44+ seeded skills with automatic slug and alias resolution (`resolveSkill`).
 - **Ranked Matching Algorithm:** Ranks prospective partners based on mutual match bonuses (+50), one-way match (+20), level fit (+5), overlapping availability (+2/hr, cap 20), and reputation.
 - **Conflict-Free Session Lifecycle:** Complete finite-state machine (`proposed` -> `accepted` | `countered` | `declined` | `cancelled` | `expired` -> `completed`) with atomic collision protection.
+- **Instant Post-Acceptance Chat:** Automatic conversation initialization upon proposal acceptance with modal prompt to immediately message learning partners.
+- **Real-Time Notification Badges:** Live unread counters on top of navigation items for pending session requests and incoming unread messages.
 - **Auto-Expiry Cron Scheduler:** Automated background job checking overdue proposals and notifying participants.
 - **Bayesian Reputation & Verified Reviews:** Mathematically guaranteed anti-inflation rating system where veterans with consistent high ratings outrank one-off reviews.
 - **Real-Time WebSockets:** JWT-authenticated Socket.io handshake, private room routing (`user:<userId>`), and conversation threading.
