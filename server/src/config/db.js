@@ -1,3 +1,4 @@
+const dns = require('dns');
 const mongoose = require('mongoose');
 const env = require('./env');
 
@@ -10,6 +11,14 @@ const connectDB = async () => {
     }
 
     let mongoUri = env.MONGODB_URI;
+
+    if (mongoUri && mongoUri.startsWith('mongodb+srv://')) {
+      try {
+        dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+      } catch (dnsErr) {
+        // Continue if environment prevents setting DNS servers
+      }
+    }
 
     if (mongoUri === 'memory' || env.NODE_ENV === 'test') {
       if (!memoryServer) {
