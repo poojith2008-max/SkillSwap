@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { Layers, Mail, Lock, ArrowRight, Sparkles, CheckCircle } from 'lucide-react';
+import { Layers, Mail, Lock, ArrowRight, CheckCircle } from 'lucide-react';
 
 export default function Login() {
   const location = useLocation();
@@ -30,19 +30,6 @@ export default function Login() {
     } catch (err) {
       const msg = err.response?.data?.error?.message || 'Login failed. Please verify credentials.';
       toast.error(msg);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    try {
-      setSubmitting(true);
-      await login('demo@skillswap.dev', 'Password123!');
-      toast.success('Logged in as Demo User (Alex Rivera)!');
-      navigate('/matches', { replace: true });
-    } catch (err) {
-      toast.error('Demo account login failed. Ensure seed script has run.');
     } finally {
       setSubmitting(false);
     }
@@ -119,19 +106,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Login Option */}
-          <div className="mt-6 pt-6 border-t border-slate-800/80">
-            <button
-              onClick={handleDemoLogin}
-              disabled={submitting}
-              type="button"
-              className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 transition-all flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              1-Click Demo Login (`demo@skillswap.dev`)
-            </button>
-          </div>
 
           <div className="mt-6 text-center text-xs text-slate-400">
             Don't have an account yet?{' '}

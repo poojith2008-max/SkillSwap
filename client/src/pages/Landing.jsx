@@ -68,7 +68,7 @@ export default function Landing() {
                   to="/login"
                   className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-200 transition-all hover:border-slate-700"
                 >
-                  Explore Demo Account
+                  Sign In
                 </Link>
               </>
             )}
